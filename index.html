@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHESSVERSE — 3D Cyber Chess Experience</title>
+<meta name="description" content="CHESSVERSE - An immersive 3D WebGL chess game with intelligent AI, adaptive difficulty, sleek cyber aesthetics, and real-time move analysis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="cv-app">
+    <canvas id="cv-canvas"></canvas>
+    <div class="cv-vig"></div>
+
+    <section id="sc-color" class="screen on">
+      <div class="color-wrap">
+        <div class="brand">CHESS<span>VERSE</span></div>
+        <p class="tag">AI vs Player · 50-50 Balanced Match</p>
+
+        <div class="field" style="width:100%;margin-top:4px;">
+          <label for="nameInput">YOUR NAME</label>
+          <input id="nameInput" type="text" placeholder="Enter your name..." maxlength="18" autocomplete="off" spellcheck="false" value="Player">
+          <div id="nameErr" class="err"></div>
+        </div>
+
+        <h2 id="colorGreet" class="greet" style="font-size:19px;margin-top:2px;">CHOOSE YOUR SIDE</h2>
+        <div class="ccards">
+          <button class="ccard sel" data-color="w" type="button">
+            <div class="cglow"></div><div class="cglyph">♔</div>
+            <div class="clabel">PLAY AS WHITE</div><div class="cdesc">You move first · AI plays Black</div>
+            <div class="ctick">SELECTED</div>
+          </button>
+          <button class="ccard" data-color="b" type="button">
+            <div class="cglow"></div><div class="cglyph">♚</div>
+            <div class="clabel">PLAY AS BLACK</div><div class="cdesc">AI moves first · Board flips to you</div>
+            <div class="ctick">SELECTED</div>
+          </button>
+        </div>
+        <div id="colorNote" class="note">You will play as White and take the first move.</div>
+        <button id="btnConfirm" class="btn primary big" type="button">CONFIRM AND PLAY AS WHITE</button>
+        <div class="tip">50-50 Balanced AI · Equal winning chances · Drag piece or tap square to move</div>
+        <div class="intro-foot"><div id="introStats">No games yet</div></div>
+      </div>
+    </section>
+
+    <!-- Backward-compatible hidden container for #btnEnter if needed -->
+    <div style="display:none;"><button id="btnEnter"></button></div>
+
+    <section id="sc-game" class="screen hud">
+      <div class="topbar">
+        <div class="pinfo">
+          <div class="pav b"></div>
+          <div class="ptxt">
+            <div class="pname">CHESSVERSE AI <span class="lvl" id="aiLvlTag">Lv3</span></div>
+            <div class="pcap" id="capByAI"></div>
+          </div>
+          <div class="clock" id="clockAI">--:--</div>
+        </div>
+      </div>
+      <div class="mid">
+        <div class="turnpill" id="turnPill">YOUR TURN</div>
+        <div class="thinking" id="thinkDot"><span></span><span></span><span></span></div>
+      </div>
+      <div class="histPanel" id="histPanel">
+        <div class="histHead">MOVE HISTORY</div>
+        <div class="histBody" id="histBody"></div>
+      </div>
+      <div class="botbar">
+        <div class="pinfo">
+          <div class="pav w"></div>
+          <div class="ptxt">
+            <div class="pname" id="playerNameTag">Player</div>
+            <div class="pcap" id="capByPlayer"></div>
+          </div>
+          <div class="clock" id="clockPlayer">--:--</div>
+        </div>
+        <div class="ctrls">
+          <button class="ic" id="btnHist" title="Move history" type="button">☰</button>
+          <button class="ic" id="btnUndo" title="Undo move" type="button">↶</button>
+          <button class="ic" id="btnSound" title="Sound" type="button">🔊</button>
+          <button class="ic" id="btnSettings" title="Settings" type="button">⚙</button>
+          <button class="ic" id="btnResign" title="Resign" type="button">⚑</button>
+          <button class="ic" id="btnRestart" title="Restart" type="button">⟳</button>
+          <button class="ic" id="btnMenu" title="Main menu" type="button">⌂</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="sc-result" class="screen">
+      <div class="resWrap">
+        <div class="resCard">
+          <div class="resIcon" id="resIcon">♔</div>
+          <h2 class="resTitle" id="resTitle">VICTORY!</h2>
+          <div class="resSub" id="resSub"></div>
+          <div class="resStats" id="resStats"></div>
+          <div class="resBtns">
+            <button class="btn primary" id="btnRematch" type="button">PLAY AGAIN</button>
+            <button class="btn ghost" id="btnResMenu" type="button">MAIN MENU</button>
+          </div>
+          <div class="resProfile" id="resProfile"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="modal" id="mSettings">
+      <div class="mbox">
+        <div class="mhead">SETTINGS <button class="mclose" id="setClose" type="button">✕</button></div>
+        <div class="mrow"><span>Sound effects</span><button class="toggle" id="tSound" type="button">ON</button></div>
+        <div class="mrow"><span>Legal move hints</span><button class="toggle" id="tHints" type="button">ON</button></div>
+        <div class="mrow"><span>Pawn quick-move</span><button class="toggle" id="tPawn" type="button">ON</button></div>
+        <div class="mrow"><span>Board labels</span><button class="toggle" id="tLabels" type="button">ON</button></div>
+        <div class="mrow"><span>AI difficulty</span>
+          <select id="selDiff">
+            <option value="0" selected>⚖ 50-50 Balanced (Fair AI)</option>
+            <option value="1">1 — Casual (Beginner)</option>
+            <option value="2">2 — Club (Intermediate)</option>
+            <option value="3">3 — Strong (Challenging)</option>
+            <option value="4">4 — Master (Brutal)</option>
+          </select>
+        </div>
+        <div class="mrow"><span>Time control</span>
+          <select id="selTime">
+            <option value="0">No clock</option>
+            <option value="3">3 min blitz</option>
+            <option value="5">5 min blitz</option>
+            <option value="10">10 min rapid</option>
+            <option value="15">15 min classic</option>
+          </select>
+        </div>
+        <div class="mrow"><span>Your name</span><button class="toggle" id="btnChangeName" type="button">CHANGE</button></div>
+        <div class="mrow"><span>Your side</span><button class="toggle" id="btnChangeColor" type="button">CHANGE</button></div>
+        <div class="mrow"><span>Download project</span><button class="toggle" id="btnZip2" type="button">.ZIP</button></div>
+        <div class="mrow"><span>Reset statistics</span><button class="toggle danger" id="btnResetStats" type="button">RESET</button></div>
+        <div class="note small" id="profSummary"></div>
+        <div class="note small" style="color:#8f82b8">
+          Controls: drag any of your pieces to a glowing square, or tap a piece then tap a highlighted square.
+          With pawn quick-move on, tapping the empty square in front of a pawn pushes it in one click.
+          Drag empty board space (or right-drag anywhere) to orbit the camera. Scroll to zoom.
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="mPromo">
+      <div class="mbox promo">
+        <div class="mhead">PROMOTE YOUR PAWN</div>
+        <div class="promoRow">
+          <button class="pbtn" data-p="q" type="button">♕<span>Queen</span></button>
+          <button class="pbtn" data-p="r" type="button">♖<span>Rook</span></button>
+          <button class="pbtn" data-p="b" type="button">♗<span>Bishop</span></button>
+          <button class="pbtn" data-p="n" type="button">♘<span>Knight</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="mConfirm">
+      <div class="mbox small">
+        <div class="mhead" id="confHead">ARE YOU SURE?</div>
+        <div class="note" id="confBody"></div>
+        <div class="promoRow two">
+          <button class="btn primary" id="confYes" type="button">YES</button>
+          <button class="btn ghost" id="confNo" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="mZip">
+      <div class="mbox small">
+        <div class="mhead">PROJECT DOWNLOAD <button class="mclose" id="zipClose" type="button">✕</button></div>
+        <div class="note" id="zipStatus">Preparing…</div>
+        <div class="promoRow two">
+          <a class="btn primary" id="zipLink" href="#" download="CHESSVERSE.zip">SAVE CHESSVERSE.ZIP</a>
+          <button class="btn ghost" id="zipAgain" type="button">REBUILD</button>
+        </div>
+        <div class="note small" id="zipHint">Extract, then double-click index.html.</div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+<script src="vendor/three.min.js"></script>
+<script>
+  if (typeof THREE === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
+  }
+</script>
+<script src="vendor/jszip.min.js"></script>
+<script>
+  if (typeof JSZip === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');
+  }
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>
